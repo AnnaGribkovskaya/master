@@ -50,13 +50,17 @@ private:
     double**** m_Amplitudes;
     double**** m_Amplitudes_previous;
     void SetUpInitialAmplitudes();
+    void UpdateTheInitialAmplitudes();
+    void  UpdateTheAmplitudes();
     void SetUpTwoBobyMatrixForHartreeFock();
     int m_numOfIterations;
     void ComputeCorrelationEnergy();
     double  m_CorrelationEnergy;
+    double m_InitialCorrelationEnergy;
     double m_ReferenceEnergyHF;
     void ComputeAmplitudes();
     void ComputeEpsilon();
+    void ComputeInitialCorrelationEnergy();
     double**** m_Epsilon;
 
 

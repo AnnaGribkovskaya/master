@@ -437,6 +437,7 @@ void QuantumDot::SetUpInitialAmplitudes(){
                      //QuantumState quantum_state_delta = m_shells.at(l);
                      //int delta_sm = quantum_state_delta.sm();
                      m_InitialAmplitudes[a][b][i][j] = (m_twoBodyElementsInHF[a][b][i][j] - m_twoBodyElementsInHF[a][b][j][i])/(eigval[i]+eigval[j]-eigval[a]-eigval[b]);
+                     //cout<< m_InitialAmplitudes[a][b][i][j]<<endl;
 
                   }
               }
@@ -466,6 +467,24 @@ void QuantumDot:: ComputeCorrelationEnergy(){
 
 }
 
+void QuantumDot:: ComputeInitialCorrelationEnergy(){
+    m_InitialCorrelationEnergy = 0.0;
+    int NumberOfStates = m_shells.size();
+    for(int i = 0; i < NumberOfParticles; i++) {
+         for(int j = 0; j < NumberOfParticles; j++) {
+             for(int a = NumberOfParticles; a < NumberOfStates; a++) {
+                 for(int b = NumberOfParticles; b < NumberOfStates; b++) {
+
+                     m_InitialCorrelationEnergy += 0.25*m_InitialAmplitudes[a][b][i][j]*m_twoBodyElementsInHF[i][j][a][b];
+
+
+                  }
+              }
+           }
+      }
+
+}
+
 void QuantumDot::ComputeEpsilon(){
     int NumberOfStates = m_shells.size();
     for(int i = 0; i < NumberOfParticles; i++) {
@@ -481,6 +500,7 @@ void QuantumDot::ComputeEpsilon(){
 
 
 }
+
 
 void QuantumDot:: ComputeAmplitudes(){
     int NumberOfStates = m_shells.size();
@@ -548,40 +568,64 @@ void QuantumDot:: ComputeAmplitudes(){
       }
 
 }
+void QuantumDot:: UpdateTheInitialAmplitudes(){
+    int NumberOfStates = m_shells.size();
+    m_Amplitudes_previous = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+    for(int i = 0; i < NumberOfParticles; i++) {
+         for(int j = 0; j < NumberOfParticles; j++) {
+             for(int a = NumberOfParticles; a < NumberOfStates; a++) {
+                 for(int b = NumberOfParticles; b < NumberOfStates; b++) {
+                     m_Amplitudes_previous[a][b][i][j] = m_InitialAmplitudes[a][b][i][j];
 
+                  }
+              }
+           }
+      }
+
+}
+
+void QuantumDot:: UpdateTheAmplitudes(){
+    int NumberOfStates = m_shells.size();
+    m_Amplitudes = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+    for(int i = 0; i < NumberOfParticles; i++) {
+         for(int j = 0; j < NumberOfParticles; j++) {
+             for(int a = NumberOfParticles; a < NumberOfStates; a++) {
+                 for(int b = NumberOfParticles; b < NumberOfStates; b++) {
+                     m_Amplitudes_previous[a][b][i][j] = m_Amplitudes[a][b][i][j];
+
+                  }
+              }
+           }
+      }
+
+}
 
 void QuantumDot:: applyCoupledClusterDoubles(){
     //applyHartreeFockMethod();
     //SetUpTwoBobyMatrixForHartreeFock();
     SetUpInitialAmplitudes();
-    m_Amplitudes=m_InitialAmplitudes;
-    //cout<< m_Amplitudes << endl;
-    ComputeCorrelationEnergy();
-    cout << "===================================================================" << endl;
-    cout << "Reference Energy:  " <<  m_ReferenceEnergyHF << endl;
-    cout << "Correlation Energy  " << m_CorrelationEnergy << endl;
-    cout << "Ground State Energy  " << m_ReferenceEnergyHF + m_CorrelationEnergy << endl;
-    m_Amplitudes_previous = m_InitialAmplitudes;
-    ComputeAmplitudes();
-    //cout<< m_Amplitudes<< endl;
-    ComputeCorrelationEnergy();
+    ComputeInitialCorrelationEnergy();
+    UpdateTheInitialAmplitudes();
+    cout<<"Correlation Energy Zero"<<m_InitialCorrelationEnergy<<endl;
+    cout << "Ground State Energy Zero " << m_ReferenceEnergyHF + m_InitialCorrelationEnergy << endl;
+    //cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
     double energy_difference = 1000;
     double energy_next = 0;
     double energy_prev = 0;
     double epsilon = 10e-10;
     int i = 0;
-    while ( i < 100){
-        //epsilon < energy_difference &&
-        ComputeCorrelationEnergy();
-        energy_prev =  m_CorrelationEnergy;
-        m_Amplitudes = m_Amplitudes_previous;
+    while (epsilon < energy_difference && i < 100){
         ComputeAmplitudes();
         ComputeCorrelationEnergy();
+        energy_prev =  m_CorrelationEnergy;
+        UpdateTheAmplitudes();
+        ComputeAmplitudes();
+        ComputeCorrelationEnergy();
+        UpdateTheAmplitudes();
         energy_next = m_CorrelationEnergy;
         energy_difference = abs(energy_next - energy_prev);
         i++;
     }
-    ComputeCorrelationEnergy();
     cout << "===================================================================" << endl;
     cout << "Reference Energy:  " <<  m_ReferenceEnergyHF << endl;
     cout << "Correlation Energy  " << m_CorrelationEnergy << endl;
