@@ -506,7 +506,7 @@ void QuantumDot:: ComputeAmplitudes(){
     int NumberOfStates = m_shells.size();
     //ComputeEpsilon();
     m_Amplitudes = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
-    m_Amplitudes_previous = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+    //m_Amplitudes_previous = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
 
     for(int i = 0; i < NumberOfParticles; i++) {
          //cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
@@ -586,7 +586,7 @@ void QuantumDot:: UpdateTheInitialAmplitudes(){
 
 void QuantumDot:: UpdateTheAmplitudes(){
     int NumberOfStates = m_shells.size();
-    m_Amplitudes = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+    //m_Amplitudes = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
     for(int i = 0; i < NumberOfParticles; i++) {
          for(int j = 0; j < NumberOfParticles; j++) {
              for(int a = NumberOfParticles; a < NumberOfStates; a++) {
@@ -612,7 +612,7 @@ void QuantumDot:: applyCoupledClusterDoubles(){
     double energy_difference = 1000;
     double energy_next = 0;
     double energy_prev = 0;
-    double epsilon = 10e-10;
+    double epsilon = 10e-15;
     int i = 0;
     while (epsilon < energy_difference && i < 100){
         ComputeAmplitudes();
