@@ -417,7 +417,7 @@ void QuantumDot::SetUpTwoBobyMatrixForHartreeFock(){
 
 void QuantumDot::SetUpInitialAmplitudes(){
     int NumberOfStates = m_shells.size();
-    m_twoBodyElementsInHF = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+    //m_twoBodyElementsInHF = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
     m_InitialAmplitudes = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
     applyHartreeFockMethod();
     SetUpTwoBobyMatrixForHartreeFock();
@@ -436,7 +436,8 @@ void QuantumDot::SetUpInitialAmplitudes(){
                  for(int b = NumberOfParticles; b < NumberOfStates; b++) {
                      //QuantumState quantum_state_delta = m_shells.at(l);
                      //int delta_sm = quantum_state_delta.sm();
-                     m_InitialAmplitudes[a][b][i][j] = (m_twoBodyElementsInHF[a][b][i][j] - m_twoBodyElementsInHF[a][b][j][i])/(eigval[i]+eigval[j]-eigval[a]-eigval[b]);
+                     //m_InitialAmplitudes[a][b][i][j] = (m_twoBodyElementsInHF[a][b][i][j] - m_twoBodyElementsInHF[a][b][j][i])/(eigval[i]+eigval[j]-eigval[a]-eigval[b]);
+                     m_InitialAmplitudes[a][b][i][j] =  m_twoBodyElementsInHF[a][b][i][j]/(eigval[i]+eigval[j]-eigval[a]-eigval[b]);
                      //cout<< m_InitialAmplitudes[a][b][i][j]<<endl;
 
                   }
@@ -504,17 +505,15 @@ void QuantumDot::ComputeEpsilon(){
 
 void QuantumDot:: ComputeAmplitudes(){
     int NumberOfStates = m_shells.size();
-    //ComputeEpsilon();
-    m_Amplitudes = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
-    //m_Amplitudes_previous = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+
 
     for(int i = 0; i < NumberOfParticles; i++) {
-         //cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
-         for(int j = 0; j < NumberOfParticles; j++) {
-              //cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
+
+         for(int j = 0; j < i; j++) {
+
              for(int a = NumberOfParticles; a < NumberOfStates; a++) {
-                  //cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
-                 for(int b = NumberOfParticles; b < NumberOfStates; b++) {
+
+                 for(int b = NumberOfParticles; b < a; b++) {
 
                      double first_term = 0.0;
                      double second_term = 0.0;
@@ -561,7 +560,7 @@ void QuantumDot:: ComputeAmplitudes(){
 
                      m_Amplitudes[a][b][i][j] = 1/(eigval[i]+eigval[j]-eigval[a]-eigval[b])*(first_term+0.5*second_term+0.5*third_term+forth_term+0.25*last_term1+last_term2-0.5*last_term3-0.5*last_term4);
 
-                     //cout << m_Amplitudes[a][b][i][j] << endl;
+
                   }
               }
            }
@@ -570,7 +569,7 @@ void QuantumDot:: ComputeAmplitudes(){
 }
 void QuantumDot:: UpdateTheInitialAmplitudes(){
     int NumberOfStates = m_shells.size();
-    m_Amplitudes_previous = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+
     for(int i = 0; i < NumberOfParticles; i++) {
          for(int j = 0; j < NumberOfParticles; j++) {
              for(int a = NumberOfParticles; a < NumberOfStates; a++) {
@@ -586,11 +585,10 @@ void QuantumDot:: UpdateTheInitialAmplitudes(){
 
 void QuantumDot:: UpdateTheAmplitudes(){
     int NumberOfStates = m_shells.size();
-    //m_Amplitudes = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
     for(int i = 0; i < NumberOfParticles; i++) {
-         for(int j = 0; j < NumberOfParticles; j++) {
-             for(int a = NumberOfParticles; a < NumberOfStates; a++) {
-                 for(int b = NumberOfParticles; b < NumberOfStates; b++) {
+        for(int j = 0; j < NumberOfParticles; j++) {
+            for(int a = NumberOfParticles; a < NumberOfStates; a++) {
+                for(int b = NumberOfParticles; b < NumberOfStates; b++) {
                      m_Amplitudes_previous[a][b][i][j] = m_Amplitudes[a][b][i][j];
 
                   }
@@ -601,8 +599,9 @@ void QuantumDot:: UpdateTheAmplitudes(){
 }
 
 void QuantumDot:: applyCoupledClusterDoubles(){
-    //applyHartreeFockMethod();
-    //SetUpTwoBobyMatrixForHartreeFock();
+    int NumberOfStates = m_shells.size();
+    m_Amplitudes = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+    m_Amplitudes_previous = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
     SetUpInitialAmplitudes();
     ComputeInitialCorrelationEnergy();
     UpdateTheInitialAmplitudes();
@@ -612,7 +611,7 @@ void QuantumDot:: applyCoupledClusterDoubles(){
     double energy_difference = 1000;
     double energy_next = 0;
     double energy_prev = 0;
-    double epsilon = 10e-15;
+    double epsilon = 10e-10;
     int i = 0;
     while (epsilon < energy_difference && i < 100){
         ComputeAmplitudes();

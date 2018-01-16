@@ -6,7 +6,7 @@ using namespace std;
 int main(int numberOfArguments, char **argumentList)
 {
 
-    int NumberOfShells = 2;
+    int NumberOfShells = 3;
     int NumberOfElectrons = 2;
     double HOStrenth = 1;
 
