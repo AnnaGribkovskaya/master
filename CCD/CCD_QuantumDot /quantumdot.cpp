@@ -326,10 +326,11 @@ void QuantumDot::applyHartreeFockMethod(){
     m_numOfIterations = i;
     computeHartreeFockEnergy(y_DensityMatrix);
     cout << "Number of iterations " << i << endl;
+    //cout << eigval[0] << endl;
     //cout << eigval[1] << endl;
+    //cout << eigval[2] << endl;
 
 }
-
 
 void QuantumDot::getQuantumDotStates(){
     for(QuantumState quantum_state : m_shells){
@@ -401,11 +402,13 @@ void QuantumDot::SetUpTwoBobyMatrixForHartreeFock(){
                                             }
                                             TBME = tbme1 - tbme2;
                                             m_twoBodyElementsInHF[a][b][c][d] += TBME*m_C(a,i)*m_C(b,k)*m_C(c,j)*m_C(d,l);
+                                            //m_twoBodyElementsInHF[a][b][c][d] += TBME*m_C(i,a)*m_C(k,b)*m_C(c,j)*m_C(d,l);
+
                                     }
                                 }
                         }
                     }
-
+                                            //cout<< "Matrix Elements in HF"<<"["<< a <<"]["<< b <<"]["<< c <<"]["<< d <<"]="<< m_twoBodyElementsInHF[a][b][c][d]<<endl;
                 }
 
             }
@@ -414,10 +417,8 @@ void QuantumDot::SetUpTwoBobyMatrixForHartreeFock(){
     }
 }
 
-
 void QuantumDot::SetUpInitialAmplitudes(){
     int NumberOfStates = m_shells.size();
-    //m_twoBodyElementsInHF = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
     m_InitialAmplitudes = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
     applyHartreeFockMethod();
     SetUpTwoBobyMatrixForHartreeFock();
@@ -444,10 +445,7 @@ void QuantumDot::SetUpInitialAmplitudes(){
               }
            }
       }
-
 }
-
-
 void QuantumDot:: ComputeCorrelationEnergy(){
     m_CorrelationEnergy = 0.0;
     int NumberOfStates = m_shells.size();
@@ -465,9 +463,7 @@ void QuantumDot:: ComputeCorrelationEnergy(){
               }
            }
       }
-
 }
-
 void QuantumDot:: ComputeInitialCorrelationEnergy(){
     m_InitialCorrelationEnergy = 0.0;
     int NumberOfStates = m_shells.size();
@@ -483,9 +479,7 @@ void QuantumDot:: ComputeInitialCorrelationEnergy(){
               }
            }
       }
-
 }
-
 void QuantumDot::ComputeEpsilon(){
     int NumberOfStates = m_shells.size();
     for(int i = 0; i < NumberOfParticles; i++) {
@@ -497,12 +491,8 @@ void QuantumDot::ComputeEpsilon(){
                   }
               }
            }
-      }
-
-
+     }
 }
-
-
 void QuantumDot:: ComputeAmplitudes(){
     int NumberOfStates = m_shells.size();
 
@@ -540,8 +530,8 @@ void QuantumDot:: ComputeAmplitudes(){
 
                              for(int k = 0; k < NumberOfParticles; k++) {
                                  for(int c = NumberOfParticles; c < NumberOfStates; c++) {
-                                     forth_term+=m_twoBodyElementsInHF[k][b][c][j]*m_Amplitudes_previous[a][c][i][k]-m_twoBodyElementsInHF[k][a][c][j]*m_Amplitudes_previous[b][c][i][k]-
-                                             m_twoBodyElementsInHF[k][b][c][i]*m_Amplitudes_previous[a][c][j][k]-m_twoBodyElementsInHF[k][a][c][i]*m_Amplitudes_previous[b][c][j][k];
+                                     forth_term+=m_twoBodyElementsInHF[k][b][c][j]*m_Amplitudes_previous[a][c][i][k]- m_twoBodyElementsInHF[k][a][c][j]*m_Amplitudes_previous[b][c][i][k]-
+                                             m_twoBodyElementsInHF[k][b][c][i]*m_Amplitudes_previous[a][c][j][k] + m_twoBodyElementsInHF[k][a][c][i]*m_Amplitudes_previous[b][c][j][k]; //ERROR!!!
                                  }
                              }
 
@@ -567,6 +557,7 @@ void QuantumDot:: ComputeAmplitudes(){
       }
 
 }
+
 void QuantumDot:: UpdateTheInitialAmplitudes(){
     int NumberOfStates = m_shells.size();
 
@@ -579,10 +570,9 @@ void QuantumDot:: UpdateTheInitialAmplitudes(){
                   }
               }
            }
-      }
+     }
 
 }
-
 void QuantumDot:: UpdateTheAmplitudes(){
     int NumberOfStates = m_shells.size();
     for(int i = 0; i < NumberOfParticles; i++) {
@@ -594,10 +584,9 @@ void QuantumDot:: UpdateTheAmplitudes(){
                   }
               }
            }
-      }
+     }
 
 }
-
 void QuantumDot:: applyCoupledClusterDoubles(){
     int NumberOfStates = m_shells.size();
     m_Amplitudes = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
@@ -611,7 +600,7 @@ void QuantumDot:: applyCoupledClusterDoubles(){
     double energy_difference = 1000;
     double energy_next = 0;
     double energy_prev = 0;
-    double epsilon = 10e-10;
+    double epsilon = 10e-4;
     int i = 0;
     while (epsilon < energy_difference && i < 100){
         ComputeAmplitudes();
@@ -632,5 +621,156 @@ void QuantumDot:: applyCoupledClusterDoubles(){
     cout << "===================================================================" << endl;
     cout<< "Last computed energy"<< m_ReferenceEnergyHF + energy_next << endl;
     cout<< "Number of iteratoins"<< i << endl;
+}
+
+
+//TEST WITHOUT HF basis, under construction...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void QuantumDot::SetUpInitialAmplitudes_not_HF(){
+    int NumberOfStates = m_shells.size();
+    m_InitialAmplitudes_notHF= create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+    applyHartreeFockMethod();
+    //SetUpTwoBobyMatrixForHartreeFock();
+    for(int i = 0; i < NumberOfParticles; i++) {
+        //QuantumState quantum_state_alpha = m_shells.at(i);
+        //int alpha_sm = quantum_state_alpha.sm();
+
+         for(int j = 0; j < NumberOfParticles; j++) {
+             //QuantumState quantum_state_beta = m_shells.at(j);
+             //int beta_sm = quantum_state_beta.sm();
+
+             for(int a = NumberOfParticles; a < NumberOfStates; a++) {
+                 //QuantumState quantum_state_gama = m_shells.at(k);
+                 //int gama_sm = quantum_state_gama.sm();
+
+                 for(int b = NumberOfParticles; b < NumberOfStates; b++) {
+                     //QuantumState quantum_state_delta = m_shells.at(l);
+                     //int delta_sm = quantum_state_delta.sm();
+                     //m_InitialAmplitudes_notHF[a][b][i][j] = (m_twoBodyElements[a][b][i][j] - m_twoBodyElements[a][b][j][i])/(eigval[i]+eigval[j]-eigval[a]-eigval[b]);
+                     m_InitialAmplitudes_notHF[a][b][i][j] = (m_twoBodyElements[a][b][i][j] - m_twoBodyElements[a][b][j][i])/(m_HOEnergies(i, i)+m_HOEnergies(j, j)-m_HOEnergies(a, a)-m_HOEnergies(b, b));
+                     //cout<<m_InitialAmplitudes_notHF[a][b][i][j]<< endl;
+                  }
+              }
+           }
+      }
+}
+
+void QuantumDot:: ComputeInitialCorrelationEnergy_not_HF(){
+    m_InitialCorrelationEnergy_notHF = 0.0;
+    int NumberOfStates = m_shells.size();
+    for(int i = 0; i < NumberOfParticles; i++) {
+         for(int j = 0; j < NumberOfParticles; j++) {
+             for(int a = NumberOfParticles; a < NumberOfStates; a++) {
+                 for(int b = NumberOfParticles; b < NumberOfStates; b++) {
+
+                     m_InitialCorrelationEnergy_notHF += 0.25*m_InitialAmplitudes_notHF[a][b][i][j]*(m_twoBodyElements[i][j][a][b]-m_twoBodyElements[i][j][b][a]);
+
+
+                  }
+              }
+           }
+      }
+}
+
+void QuantumDot:: ComputeAmplitudes_not_HF(){
+    int NumberOfStates = m_shells.size();
+
+    for(int i = 0; i < NumberOfParticles; i++) {
+         for(int j = 0; j < i; j++) {
+             for(int a = NumberOfParticles; a < NumberOfStates; a++) {
+                 for(int b = NumberOfParticles; b < a; b++) {
+                     double first_term = 0.0;
+                     double second_term = 0.0;
+                     double third_term = 0.0;
+                     double forth_term = 0.0;
+                     double last_term1 = 0.0;
+                     double last_term2 = 0.0;
+                     double last_term3 = 0.0;
+                     double last_term4 = 0.0;
+
+                     first_term = m_twoBodyElements[a][b][i][j];
+                             for(int c = NumberOfParticles; c < NumberOfStates; c++) {
+                                 for(int d = NumberOfParticles; d < NumberOfStates; d++) {
+                                     second_term+=m_twoBodyElements[a][b][c][d]*m_Amplitudes_previous_notHF[c][d][i][j];
+                                 }
+                             }
+                             for(int k = 0; k < NumberOfParticles; k++) {
+                                 for(int l = 0; l < NumberOfParticles; l++) {
+                                     third_term+=m_twoBodyElements[k][l][i][j]*m_Amplitudes_previous_notHF[a][b][k][l];
+                                 }
+                             }
+
+                             for(int k = 0; k < NumberOfParticles; k++) {
+                                 for(int c = NumberOfParticles; c < NumberOfStates; c++) {
+                                     forth_term+=m_twoBodyElements[k][b][c][j]*m_Amplitudes_previous_notHF[a][c][i][k]-m_twoBodyElements[k][a][c][j]*m_Amplitudes_previous_notHF[b][c][i][k]-
+                                             m_twoBodyElements[k][b][c][i]*m_Amplitudes_previous_notHF[a][c][j][k]-m_twoBodyElements[k][a][c][i]*m_Amplitudes_previous_notHF[b][c][j][k];
+                                 }
+                             }
+
+                             for(int k = 0; k < NumberOfParticles; k++) {
+                                 for(int l = 0; l < NumberOfParticles; l++) {
+                                     for(int c = NumberOfParticles; c < NumberOfStates; c++) {
+                                         for(int d = NumberOfParticles; d < NumberOfStates; d++) {
+                                             last_term1+=m_twoBodyElements[k][l][c][d]*m_Amplitudes_previous_notHF[c][d][i][j]*m_Amplitudes_previous_notHF[a][b][k][l];
+                                             last_term2+=m_twoBodyElements[k][l][c][d]*(m_Amplitudes_previous[a][c][i][k]*m_Amplitudes_previous_notHF[b][d][j][l]-m_Amplitudes_previous_notHF[a][c][j][k]*m_Amplitudes_previous_notHF[b][d][i][l]);
+                                             last_term3+=m_twoBodyElements[k][l][c][d]*(m_Amplitudes_previous[d][c][i][k]*m_Amplitudes_previous_notHF[a][b][l][j]-m_Amplitudes_previous_notHF[d][c][j][k]*m_Amplitudes_previous_notHF[a][b][l][i]);
+                                             last_term4+=m_twoBodyElements[k][l][c][d]*(m_Amplitudes_previous[a][c][l][k]*m_Amplitudes_previous_notHF[d][b][i][j]-m_Amplitudes_previous_notHF[b][c][l][k]*m_Amplitudes_previous_notHF[d][a][i][j]);
+                                         }
+                                     }
+                                 }
+                             }
+
+                     m_Amplitudes_notHF[a][b][i][j] = 1/(eigval[i]+eigval[j]-eigval[a]-eigval[b])*(first_term+0.5*second_term+0.5*third_term+forth_term+0.25*last_term1+last_term2-0.5*last_term3-0.5*last_term4);
+
+
+                  }
+              }
+           }
+      }
 
 }
+void QuantumDot:: UpdateTheInitialAmplitudes_not_HF(){
+    int NumberOfStates = m_shells.size();
+    for(int i = 0; i < NumberOfParticles; i++) {
+         for(int j = 0; j < NumberOfParticles; j++) {
+             for(int a = NumberOfParticles; a < NumberOfStates; a++) {
+                 for(int b = NumberOfParticles; b < NumberOfStates; b++) {
+                     m_Amplitudes_previous_notHF[a][b][i][j] = m_InitialAmplitudes_notHF[a][b][i][j];
+
+                  }
+              }
+           }
+     }
+
+}
+void QuantumDot:: applyCCD_Not_HF(){
+    int NumberOfStates = m_shells.size();
+    fillTwoBodyElements();
+    m_Amplitudes_notHF = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+    m_Amplitudes_previous_notHF = create4dArray(NumberOfStates, NumberOfStates, NumberOfStates, NumberOfStates);
+    SetUpInitialAmplitudes_not_HF();
+    ComputeInitialCorrelationEnergy_not_HF();
+    cout << "===================================================================" << endl;
+    cout << "Reference Energy:  " <<  m_ReferenceEnergyHF << endl;
+    cout << "Correlation Energy  " << m_InitialCorrelationEnergy_notHF << endl;
+    cout << "Ground State Energy Zero " << m_ReferenceEnergyHF + m_InitialCorrelationEnergy_notHF  << endl;
+    cout << "===================================================================" << endl;
+
+
+}
+

@@ -6,7 +6,7 @@ using namespace std;
 int main(int numberOfArguments, char **argumentList)
 {
 
-    int NumberOfShells = 3;
+    int NumberOfShells = 4;
     int NumberOfElectrons = 2;
     double HOStrenth = 1;
 
@@ -23,6 +23,7 @@ int main(int numberOfArguments, char **argumentList)
     //qdot.applyHartreeFockMethod();
     qdot.applyCoupledClusterDoubles();
     //qdot.getQuantumDotStatesNumber();
+    //qdot.applyCCD_Not_HF();
 
 
 }

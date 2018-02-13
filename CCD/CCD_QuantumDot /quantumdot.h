@@ -18,6 +18,7 @@ public:
     void getQuantumDotStatesNumber();
     void applyHartreeFockMethod();
     void applyCoupledClusterDoubles();
+    void applyCCD_Not_HF();
 
 private:
     std::vector<QuantumState> m_shells;
@@ -62,6 +63,14 @@ private:
     void ComputeEpsilon();
     void ComputeInitialCorrelationEnergy();
     double**** m_Epsilon;
+    void SetUpInitialAmplitudes_not_HF();
+    double**** m_Amplitudes_notHF;
+    double**** m_Amplitudes_previous_notHF;
+    double**** m_InitialAmplitudes_notHF;
+    void ComputeInitialCorrelationEnergy_not_HF();
+    double m_InitialCorrelationEnergy_notHF;
+    void UpdateTheInitialAmplitudes_not_HF();
+    void ComputeAmplitudes_not_HF();
 
 
 };
