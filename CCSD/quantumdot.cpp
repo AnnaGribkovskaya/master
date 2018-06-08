@@ -556,7 +556,8 @@ void QuantumDot::computeInitialT1Amplitudes(){
     int NumberOfStates = m_shells.size();
     int FermiLevel = NumberOfParticles;
 
-    m_CCD_t1_old.zeros(NumberOfStates,FermiLevel);
+    m_CCD_t1_old.zeros(NumberOfStates,NumberOfStates);
+    m_CCD_t1.zeros(NumberOfStates,NumberOfStates);
     /*
     for(int i = 0; i < FermiLevel; i++){
         for(int a = FermiLevel; a < NumberOfStates; a++){
@@ -580,10 +581,9 @@ void QuantumDot::setUpFmatrix(){
          }
      }
      cout << "End set up f-matrix" << endl;
-    //m_fm.print();
+    m_fm.print();
 
 }
-
 
 void QuantumDot::computeT1Amplitudes(){
     double EnergyDenominator;
@@ -591,10 +591,8 @@ void QuantumDot::computeT1Amplitudes(){
     int NumberOfStates = m_shells.size();
     for(int i = 0; i < FermiLevel; i++){
         for(int a = FermiLevel; a < NumberOfStates; a++){
-
-            EnergyDenominator = m_HOEnergies(i, i) -  m_HOEnergies(a, a);
-            m_CCD_t1(a,i) = m_fm(a,i);
-
+            EnergyDenominator = m_HOEnergies(i, i) -  m_HOEnergies(a, a);     
+            m_CCD_t1(a,i) = m_fm(a,i);          
             for(int k = 0; k < FermiLevel; k++){
                 for(int c = FermiLevel; c < NumberOfStates; c++){
 
@@ -636,7 +634,6 @@ void QuantumDot::computeT2Amplitudes(){
 
                     m_CCD_t[a][b][i][j] = (m_twoBodyElements[a][b][i][j]-m_twoBodyElements[a][b][j][i]);
 
-
                     for(int c = FermiLevel; c < NumberOfStates; c++){
                         for(int d = FermiLevel; d < NumberOfStates; d++){
                             m_CCD_t[a][b][i][j] += 0.5*(m_twoBodyElements[a][b][c][d]-m_twoBodyElements[a][b][d][c])*m_CCD_t_old[c][d][i][j];
@@ -673,24 +670,163 @@ void QuantumDot::computeT2Amplitudes(){
 
                     for(int c = FermiLevel; c < NumberOfStates; c++){
                         m_CCD_t[a][b][i][j] += (m_twoBodyElements[a][b][c][j]-m_twoBodyElements[a][b][j][c])*m_CCD_t1_old(c,i) - (m_twoBodyElements[a][b][c][i]-m_twoBodyElements[a][b][i][c])*m_CCD_t1_old(c,j);
-                    }
+                        for(int d = FermiLevel; d < NumberOfStates; d++){
+                            m_CCD_t[a][b][i][j] += 0.5*(m_twoBodyElements[a][b][c][d]-m_twoBodyElements[a][b][d][c])*(m_CCD_t1_old(c,i)*m_CCD_t1_old(d,j) - m_CCD_t1_old(c,j)*m_CCD_t1_old(d,i));
+                             for(int k = 0; k < FermiLevel; k++){
+                                m_CCD_t[a][b][i][j] += (m_twoBodyElements[k][a][c][d]-m_twoBodyElements[k][a][d][c])*m_CCD_t1_old(c,k)*m_CCD_t_old[d][b][i][j] - (m_twoBodyElements[k][b][c][d]-m_twoBodyElements[k][b][d][c])*m_CCD_t1_old(c,k)*m_CCD_t_old[d][a][i][j];
+                                m_CCD_t[a][b][i][j] += (m_twoBodyElements[a][k][d][c]-m_twoBodyElements[a][k][c][d])*m_CCD_t1_old(d,i)*m_CCD_t_old[b][c][j][k] -
+                                                       (m_twoBodyElements[b][k][d][c]-m_twoBodyElements[b][k][c][d])*m_CCD_t1_old(d,i)*m_CCD_t_old[a][c][j][k] -
+                                                       (m_twoBodyElements[a][k][d][c]-m_twoBodyElements[a][k][c][d])*m_CCD_t1_old(d,j)*m_CCD_t_old[b][c][i][k] +
+                                                       (m_twoBodyElements[b][k][d][c]-m_twoBodyElements[b][k][c][d])*m_CCD_t1_old(d,j)*m_CCD_t_old[a][c][i][k] ;
+                                m_CCD_t[a][b][i][j] -= 0.5*((m_twoBodyElements[k][b][c][d]-m_twoBodyElements[k][b][d][c])*m_CCD_t1_old(a,k)*m_CCD_t_old[c][d][i][j]
+                                                       - (m_twoBodyElements[k][a][c][d]-m_twoBodyElements[k][a][d][c])*m_CCD_t1_old(b,k)*m_CCD_t_old[c][d][i][j]);
+                                m_CCD_t[a][b][i][j] -= 0.5*((m_twoBodyElements[k][b][c][d]-m_twoBodyElements[k][b][d][c])*(m_CCD_t1_old(c,i)*m_CCD_t1_old(a,k)*m_CCD_t1_old(d,j) - m_CCD_t1_old(c,j)*m_CCD_t1_old(a,k)*m_CCD_t1_old(d,i)) -
+                                                            (m_twoBodyElements[k][a][c][d]-m_twoBodyElements[k][a][d][c])*(m_CCD_t1_old(c,i)*m_CCD_t1_old(b,k)*m_CCD_t1_old(d,j) - m_CCD_t1_old(c,i)*m_CCD_t1_old(b,k)*m_CCD_t1_old(d,j)));
 
+                                for(int l = 0; l < FermiLevel; l++){
+                                    m_CCD_t[a][b][i][j] -= (m_twoBodyElements[k][l][c][d]-m_twoBodyElements[k][l][d][c])*(m_CCD_t1_old(c,k)*m_CCD_t1_old(d,i)*m_CCD_t_old[a][b][l][j] - m_CCD_t1_old(c,k)*m_CCD_t1_old(d,j)*m_CCD_t_old[a][b][l][i]);
+                                    m_CCD_t[a][b][i][j] -= (m_twoBodyElements[k][l][c][d]-m_twoBodyElements[k][l][d][c])*(m_CCD_t1_old(c,k)*m_CCD_t1_old(a,l)*m_CCD_t_old[d][b][i][j] - m_CCD_t1_old(c,k)*m_CCD_t1_old(b,l)*m_CCD_t_old[d][a][i][j]);
+                                    m_CCD_t[a][b][i][j] += 0.25*(m_twoBodyElements[k][l][c][d]-m_twoBodyElements[k][l][d][c])*(m_CCD_t1_old(c,i)*m_CCD_t1_old(d,j)*m_CCD_t_old[a][b][k][l] - m_CCD_t1_old(c,j)*m_CCD_t1_old(d,i)*m_CCD_t_old[a][b][k][l]);
+                                    m_CCD_t[a][b][i][j] += 0.25*(m_twoBodyElements[k][l][c][d]-m_twoBodyElements[k][l][d][c])*(m_CCD_t1_old(a,k)*m_CCD_t1_old(b,l)*m_CCD_t_old[c][d][i][j] - m_CCD_t1_old(b,k)*m_CCD_t1_old(a,l)*m_CCD_t_old[c][d][i][j]);
+                                    m_CCD_t[a][b][i][j] += (m_twoBodyElements[k][l][c][d]-m_twoBodyElements[k][l][d][c])*(m_CCD_t1_old(c,i)*m_CCD_t1_old(b,l)*m_CCD_t_old[a][d][k][j] - m_CCD_t1_old(c,j)*m_CCD_t1_old(b,l)*m_CCD_t_old[a][d][k][i] - m_CCD_t1_old(c,i)*m_CCD_t1_old(a,l)*m_CCD_t_old[b][d][k][j] + m_CCD_t1_old(c,j)*m_CCD_t1_old(a,l)*m_CCD_t_old[b][d][k][i]);
+                                    m_CCD_t[a][b][i][j] += 0.25*(m_twoBodyElements[k][l][c][d]-m_twoBodyElements[k][l][d][c])*(m_CCD_t1_old(c,i)*m_CCD_t1_old(a,k)*m_CCD_t1_old(d,j)*m_CCD_t1_old(b,l) - m_CCD_t1_old(c,i)*m_CCD_t1_old(b,k)*m_CCD_t1_old(d,j)*m_CCD_t1_old(a,l) - m_CCD_t1_old(c,j)*m_CCD_t1_old(a,k)*m_CCD_t1_old(d,i)*m_CCD_t1_old(b,l) + m_CCD_t1_old(c,j)*m_CCD_t1_old(b,k)*m_CCD_t1_old(d,i)*m_CCD_t1_old(a,l));
+                                 }
 
-                    for(int k = 0; k < FermiLevel; k++){
-                        for(int c = FermiLevel; c < NumberOfStates; c++){
-                            m_CCD_t[a][b][i][j] -= (m_twoBodyElements[k][b][i][j]-m_twoBodyElements[j][b][j][i])*m_CCD_t1_old(a,k) - (m_twoBodyElements[k][a][i][j]-m_twoBodyElements[j][a][j][i])*m_CCD_t1_old(b,k);
+                             }
                         }
                     }
 
 
+                    for(int k = 0; k < FermiLevel; k++){
+                            m_CCD_t[a][b][i][j] -= (m_twoBodyElements[k][b][i][j]-m_twoBodyElements[j][b][j][i])*m_CCD_t1_old(a,k) -
+                                    (m_twoBodyElements[k][a][i][j]-m_twoBodyElements[j][a][j][i])*m_CCD_t1_old(b,k);
+                            for(int c = FermiLevel; c < NumberOfStates; c++){
+                                m_CCD_t[a][b][i][j] += m_fm(k,c)*(m_CCD_t1_old(a,k)*m_CCD_t_old[b][c][i][j] - m_CCD_t1_old(b,k)*m_CCD_t_old[a][c][i][j]);
+                                m_CCD_t[a][b][i][j] += m_fm(k,c)*(m_CCD_t1_old(c,i)*m_CCD_t_old[a][b][j][k] - m_CCD_t1_old(c,j)*m_CCD_t_old[a][b][i][k]);
+                                m_CCD_t[a][b][i][j] -= (m_twoBodyElements[k][b][i][c]-m_twoBodyElements[k][b][c][i])*m_CCD_t1_old(a,k)*m_CCD_t1_old(c,j) -
+                                        (m_twoBodyElements[k][a][i][c]-m_twoBodyElements[k][a][c][i])*m_CCD_t1_old(b,k)*m_CCD_t1_old(c,j) -
+                                        (m_twoBodyElements[k][b][j][c]-m_twoBodyElements[k][b][c][j])*m_CCD_t1_old(a,k)*m_CCD_t1_old(c,i) +
+                                        (m_twoBodyElements[k][a][j][c]-m_twoBodyElements[k][a][c][j])*m_CCD_t1_old(b,k)*m_CCD_t1_old(c,i);
+                                for(int l = 0; l < FermiLevel; l++){
+                                    m_CCD_t[a][b][i][j] -= (m_twoBodyElements[k][l][c][i]-m_twoBodyElements[k][l][i][c])*m_CCD_t1_old(c,k)*m_CCD_t_old[a][b][l][j] -
+                                            (m_twoBodyElements[k][l][c][j]-m_twoBodyElements[k][l][j][c])*m_CCD_t1_old(c,k)*m_CCD_t_old[a][b][l][i];
 
+                                    m_CCD_t[a][b][i][j] += (m_twoBodyElements[k][l][i][c]-m_twoBodyElements[k][l][c][i])*m_CCD_t1_old(a,l)*m_CCD_t_old[b][c][j][k] -
+                                            (m_twoBodyElements[k][l][i][c]-m_twoBodyElements[k][l][c][i])*m_CCD_t1_old(b,l)*m_CCD_t_old[a][c][j][k] -
+                                            (m_twoBodyElements[k][l][j][c]-m_twoBodyElements[k][l][c][j])*m_CCD_t1_old(a,l)*m_CCD_t_old[b][c][i][k] +
+                                            (m_twoBodyElements[k][l][j][c]-m_twoBodyElements[k][l][c][j])*m_CCD_t1_old(b,l)*m_CCD_t_old[a][c][i][k];
 
+                                    m_CCD_t[a][b][i][j] += 0.5*((m_twoBodyElements[k][l][c][j]-m_twoBodyElements[k][l][j][c])*m_CCD_t1_old(c,i)*m_CCD_t_old[a][b][k][l] -
+                                            (m_twoBodyElements[k][l][c][i]-m_twoBodyElements[k][l][i][c])*m_CCD_t1_old(c,j)*m_CCD_t_old[a][b][k][l]);
 
+                                    m_CCD_t[a][b][i][j] += 0.5*((m_twoBodyElements[k][l][c][j]-m_twoBodyElements[k][l][j][c])*(m_CCD_t1_old(c,i)*m_CCD_t1_old(a,k)*m_CCD_t1_old(b,l) - m_CCD_t1_old(c,i)*m_CCD_t1_old(b,k)*m_CCD_t1_old(a,l)) -
+                                                                (m_twoBodyElements[k][l][c][i]-m_twoBodyElements[k][l][i][c])*(m_CCD_t1_old(c,j)*m_CCD_t1_old(a,k)*m_CCD_t1_old(b,l) - m_CCD_t1_old(c,j)*m_CCD_t1_old(a,k)*m_CCD_t1_old(b,l)));
 
+                                }
+                            }
+                            for(int l = 0; l < FermiLevel; l++){
+                                m_CCD_t[a][b][i][j] += 0.5*(m_twoBodyElements[k][l][i][j]-m_twoBodyElements[k][l][j][i])*(m_CCD_t1_old(a,k)*m_CCD_t1_old(b,l) - m_CCD_t1_old(b,k)*m_CCD_t1_old(a,l));
+                            }
+                    }
 
                     m_CCD_t[a][b][i][j] /= EnergyDenominator;
                 }
             }
         }
     }
+}
+
+void QuantumDot::updateOldCCSDAmplitudes(){
+
+     int NumberOfStates = m_shells.size();
+     updateOldAmplitudes();
+     for(int a = 0; a < NumberOfStates; a++){
+         for(int i = 0; i < NumberOfStates; i++){
+            m_CCD_t1_old(a,i) = m_CCD_t1(a,i);
+         }
+     }
+
+
+}
+
+double QuantumDot::computeCCSDCorrEnergy(){
+    double CorrelationEnergy = 0.0;
+    int NumberOfStates = m_shells.size();
+    int FermiLevel = NumberOfParticles;
+    for(int i = 0; i < FermiLevel; i++){
+        for(int a = FermiLevel; a < NumberOfStates; a++){
+            CorrelationEnergy += m_fm(i,a)*m_CCD_t1(a,i);
+            for(int j = 0; j < FermiLevel; j++){
+                for(int b = FermiLevel; b < NumberOfStates; b++){
+                    CorrelationEnergy += (m_twoBodyElements[i][j][a][b]-m_twoBodyElements[i][j][b][a])*(0.25*m_CCD_t[a][b][i][j] + 0.5*m_CCD_t1(a,i)*m_CCD_t1(b,j)) ;
+                }
+            }
+        }
+    }
+    return CorrelationEnergy;
+}
+
+double QuantumDot::computeInitialCCSDCorrEnergy(){
+    double CorrelationEnergy = 0.0;
+    int NumberOfStates = m_shells.size();
+    int FermiLevel = NumberOfParticles;
+    for(int i = 0; i < FermiLevel; i++){
+        for(int a = FermiLevel; a < NumberOfStates; a++){
+            CorrelationEnergy += m_fm(i,a)*m_CCD_t1_old(a,i);
+            for(int j = 0; j < FermiLevel; j++){
+                for(int b = FermiLevel; b < NumberOfStates; b++){
+                    CorrelationEnergy += (m_twoBodyElements[i][j][a][b]-m_twoBodyElements[i][j][b][a])*(0.25*m_CCD_t_old[a][b][i][j] + 0.5*m_CCD_t1_old(a,i)*m_CCD_t1_old(b,j)) ;
+                }
+            }
+        }
+    }
+    return CorrelationEnergy;
+}
+
+void QuantumDot::applyCCSDMethod(){
+    int NumberOfStates = m_shells.size();
+    CalculateNonIntEnergy();
+    fillTwoBodyElements();
+    double EnergyDiff = 100.0;
+    double CorrelationEnergy;
+    double EnergyRef = computeRefEnergy();
+    setUpFmatrix();
+    computeInitialT1Amplitudes();
+    computeInitialCCDAmplitudes(); //initian T2
+    double CorrelationEnergyOld = computeInitialCCSDCorrEnergy();
+    cout << setprecision(16) << "initial correlation energy(MBPT2) " << CorrelationEnergyOld << endl;
+    double m_toleranceCCD = 0.00001;
+    //int FermiLevel = NumberOfParticles;
+    int i= 0;
+    while (abs(EnergyDiff) > m_toleranceCCD && i<10){
+        i++;
+        cout << "loop start" << endl;
+        cout << "Ediff   :     " << abs(EnergyDiff) << endl;
+        //cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHEEEELLLLPPPPPPPPPAAAAAAAAAA" << endl;
+        computeT1Amplitudes();
+        //cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHEEEELLLLPPPPPPPPPAAAAAAAAAA" << endl;
+        computeT2Amplitudes();
+        cout << "-----------computed  amplitudes -----------------" << endl;
+        CorrelationEnergy = computeCCSDCorrEnergy();
+        cout <<setprecision(16) << "correlation energy in loop " << CorrelationEnergy << endl;
+        EnergyDiff = CorrelationEnergy - CorrelationEnergyOld;
+        CorrelationEnergyOld = CorrelationEnergy;
+        updateOldCCSDAmplitudes();
+    }
+    cout << setprecision (16) << "final correlation energy CCSD " << CorrelationEnergy  << endl;
+    cout << setprecision (16) << "Reference  energy  " << EnergyRef  << endl;
+    cout << setprecision (16) << "final  energy CCSD " << CorrelationEnergy +  EnergyRef<< endl;
+}
+
+double QuantumDot::computeRefEnergy(){
+
+    double Eref = 0.0;
+    for(int i = 0; i < NumberOfParticles; i++) {
+        Eref +=  m_HOEnergies(i,i);
+        for(int j = 0; j < NumberOfParticles; j++) {
+           Eref += 0.5*(m_twoBodyElements[i][j][i][j] - m_twoBodyElements[i][j][j][i]);
+
+        }
+     }
+    return Eref;
 }

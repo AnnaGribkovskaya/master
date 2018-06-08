@@ -17,6 +17,7 @@ public:
     void diagonalizeHFMatrix();
     void getQuantumDotStatesNumber();
     void applyHartreeFockMethod();
+    void applyCCSDMethod();
 
 private:
     std::vector<QuantumState> m_shells;
@@ -69,6 +70,10 @@ private:
     void setUpFmatrix();
     void computeT1Amplitudes();
     void computeT2Amplitudes();
+    void updateOldCCSDAmplitudes();
+    double computeCCSDCorrEnergy();
+    double computeInitialCCSDCorrEnergy();
+    double computeRefEnergy();
 
 
 
